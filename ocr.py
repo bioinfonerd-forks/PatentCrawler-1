@@ -17,7 +17,8 @@ def clean_operator(op):
     return int(clear)
 
 def recognize():
-    im = Image.open('login-showPic.jpeg')
+    im = Image.open('fuck.png')
+    im = im.crop((360, 290, 440, 310))
     width, height = im.size
     im = im.resize((width*2, height*2))
     im = im.filter(ImageFilter.MinFilter(3))
@@ -25,7 +26,7 @@ def recognize():
     im = enhancer.enhance(20)
     im = im.convert('1')
     im = im.filter(ImageFilter.MaxFilter(3))
-    im.show()
+    #im.show()
     ocr_result = pytesseract.image_to_string(im, config="-c tessedit_char_whitelist=0123456789+-=?")
     ocr_result = ocr_result.rstrip('-7').rstrip('=?').strip(' ')
     
@@ -34,6 +35,15 @@ def recognize():
     if ocr_result[0] == '0':
         ocr_result[0] = 9
     
+    if ocr_result.find('-') != -1:
+        a = clean_operator(ocr_result.split('-')[0])
+        b = clean_operator(ocr_result.split('-')[-1])
+        return (a-b)
+    if ocr_result.find('+') != -1:
+        a = clean_operator(ocr_result.split('+')[0])
+        b = clean_operator(ocr_result.split('+')[-1])
+        return (a+b)
+
     if ocr_result.find(' ') != -1:
         a = ocr_result.split(' ')[0]
         b = ocr_result.split(' ')[-1]
@@ -44,14 +54,6 @@ def recognize():
                 return (clean_operator(a) + clean_operator(b[1]))
         else:
             return (clean_operator(a) - clean_operator(b))
-    if ocr_result.find('-') != -1:
-        a = clean_operator(ocr_result.split('-')[0])
-        b = clean_operator(ocr_result.split('-')[-1])
-        return (a-b)
-    if ocr_result.find('+') != -1:
-        a = clean_operator(ocr_result.split('+')[0])
-        b = clean_operator(ocr_result.split('+')[-1])
-        return (a+b)
 
     return 'wtf' 
 
