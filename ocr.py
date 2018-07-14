@@ -14,7 +14,11 @@ def clean_operator(op):
     for i in op:
         if i.isdigit():
             clear += i
-    return int(clear)
+    try:
+        result = int(clear)
+    except:
+        return 'wtf'
+    return result
 
 def recognize():
     im = Image.open('fuck.png')
@@ -28,7 +32,7 @@ def recognize():
     im = im.filter(ImageFilter.MaxFilter(3))
     #im.show()
     ocr_result = pytesseract.image_to_string(im, config="-c tessedit_char_whitelist=0123456789+-=?")
-    ocr_result = ocr_result.rstrip('-7').rstrip('=?').strip(' ')
+    ocr_result = ocr_result.rstrip('-7').rstrip('=?').strip('-').strip(' ')
     
     print('raw: ', ocr_result)
     
@@ -38,10 +42,14 @@ def recognize():
     if ocr_result.find('-') != -1:
         a = clean_operator(ocr_result.split('-')[0])
         b = clean_operator(ocr_result.split('-')[-1])
+        if a == 'wtf' or b == 'wtf':
+            return 'wtf'
         return (a-b)
     if ocr_result.find('+') != -1:
         a = clean_operator(ocr_result.split('+')[0])
         b = clean_operator(ocr_result.split('+')[-1])
+        if a == 'wtf' or b == 'wtf':
+            return 'wtf'
         return (a+b)
 
     if ocr_result.find(' ') != -1:
@@ -49,11 +57,23 @@ def recognize():
         b = ocr_result.split(' ')[-1]
         if len(b) == 2:
             if b[0] == '7':
-                return (clean_operator(a) - clean_operator(b[1]))
+                a = clean_operator(a)
+                b = clean_operator(b)
+                if a == 'wtf' or b == 'wtf':
+                    return 'wtf'
+                return (a - b)
             else:
-                return (clean_operator(a) + clean_operator(b[1]))
+                a = clean_operator(a)
+                b = clean_operator(b)
+                if a == 'wtf' or b == 'wtf':
+                    return 'wtf'
+                return (a + b)
         else:
-            return (clean_operator(a) - clean_operator(b))
+            a = clean_operator(a)
+            b = clean_operator(b)
+            if a == 'wtf' or b == 'wtf':
+                return 'wtf'
+            return (a - b)
 
     return 'wtf' 
 

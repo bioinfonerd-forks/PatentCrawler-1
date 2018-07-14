@@ -28,6 +28,7 @@ def login():
     while not_login:
         driver.switch_to.window(driver.window_handles[0])       # switch to login page
         driver.get('http://www.pss-system.gov.cn/sipopublicsearch/portal/uilogin-forwardLogin.shtml')
+        print(driver.get_cookie('IS_LOGIN')['value'])
         try:
             WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'j_validation_code')))
         except TimeoutException:
@@ -64,10 +65,14 @@ def login():
             print('Seems good.')
         
     
-        not_login = False
-        JSESSIONID = driver.get_cookie('JSESSIONID')
-        WEE_SID = driver.get_cookie('WEE_SID')
-        return {'JSESSIONID': JSESSIONID['value'], 'WEE_SID': WEE_SID['value']}
+        if driver.get_cookie('IS_LOGIN')['value'] == 'true':
+            print('Login success')
+            not_login = False
+            JSESSIONID = driver.get_cookie('JSESSIONID')
+            WEE_SID = driver.get_cookie('WEE_SID')
+            return {'JSESSIONID': JSESSIONID['value'], 'WEE_SID': WEE_SID['value']}
+        else:
+            continue
 
 if __name__ == '__main__':
     print(login())
