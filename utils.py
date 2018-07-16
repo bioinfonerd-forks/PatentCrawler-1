@@ -186,7 +186,7 @@ def save_result(idx, ID, result):
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
 
-    f = open(file_name, 'w')
+    f = open(file_name, 'w', encoding='utf-8')
     f.write(result)
     f.close()
     

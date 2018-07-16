@@ -93,6 +93,9 @@ for idx in index:
     
             ID = field['ID']
             VID = field['VID']
+
+            #print(ID)
+            #print(VID)
     
             not_finished = True
             inner_fail_time = 0
@@ -101,6 +104,7 @@ for idx in index:
                     notify('摘要获取挂掉了！')
                     sys.exit(1)
                 abstract_command = "curl -s 'http://www.pss-system.gov.cn/sipopublicsearch/patentsearch/viewAbstractInfo0529-viewAbstractInfo.shtml' -H 'Pragma: no-cache' -H 'Origin: http://www.pss-system.gov.cn' -H 'Accept-Encoding: gzip, deflate' -H 'Accept-Language: zh-CN,zh;q=0.9,en;q=0.8' -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36' -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H 'Cache-Control: no-cache' -H 'X-Requested-With: XMLHttpRequest' -H 'Cookie: IS_LOGIN=true; WEE_SID=" + WEE_SID + "; avoid_declare=declare_pass; JSESSIONID=" + JSESSIONID + "' -H 'Connection: keep-alive' -H 'Referer: http://www.pss-system.gov.cn/sipopublicsearch/patentsearch/showViewList-jumpToView.shtml' -H 'DNT: 1' --data 'nrdAn=" + VID + "&cid=" + ID + "&sid=" + ID + "' --compressed"
+                #print(abstract_command)
                 abstract_result = subprocess.getoutput(abstract_command)
                 try:
                     abstract_result = json.loads(abstract_result)
@@ -116,13 +120,10 @@ for idx in index:
                 try:
                     abstract = abstract_result['abstractInfoDTO']['abIndexList'][0]['value']        # 摘要
                     abstract = clean_html(abstract)
-                    is_CPC = abstract_result['abstractInfoDTO']['abstractItemList'][11]['indexCode']    # CPC
-                    if is_CPC == 'CPC':
-                        CPC = abstract_result['abstractInfoDTO']['abstractItemList'][11]['value']
-                    else:
-                        for item in abstract_result['abstractInfoDTO']['abstractItemList']:
-                            if item['indexCode'] == 'CPC':
-                                CPC = item['value']
+                    CPC = ''
+                    for item in abstract_result['abstractInfoDTO']['abstractItemList']:
+                        if item['indexCode'] == 'CPC':
+                            CPC = item['value']
 
                     #figure_id = abstract_result['abstractInfoDTO']['figureRid']
                 except KeyError as ex:
@@ -196,7 +197,7 @@ for idx in index:
 			'apply_mail': zip_code,
 			'cpc_number': CPC,
                         }
-                final_result_json = json.dumps(final_result)
+                final_result_json = json.dumps(final_result, ensure_ascii=False)
                 save_result(idx, ID, final_result_json)
                 not_finished = False
                 outer_fail_time = 0
