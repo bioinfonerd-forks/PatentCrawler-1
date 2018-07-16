@@ -16,7 +16,11 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from ocr import recognize
 import sys
 from time import sleep
+from utils import notify
 def login():
+    max_fail_time = 20
+    fail_time = 0
+
     options = webdriver.ChromeOptions()
     options.binary_location = '/usr/bin/google-chrome'
     options.add_argument('headless')
@@ -26,12 +30,17 @@ def login():
     driver.execute_script('window.open("");')       # open a new tab for CAPTCHA
     
     while not_login:
+        if fail_time > max_fail_time:
+            notify('登录失败')
+            sys.exit()
         driver.switch_to.window(driver.window_handles[0])       # switch to login page
         driver.get('http://www.pss-system.gov.cn/sipopublicsearch/portal/uilogin-forwardLogin.shtml')
         print(driver.get_cookie('IS_LOGIN')['value'])
         try:
             WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'j_validation_code')))
         except TimeoutException:
+            fail_time += 1
+            sleep(fail_time ** 2)
             continue
     
         driver.find_element_by_id('j_username').send_keys('a729918410')
@@ -52,15 +61,22 @@ def login():
             WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'ui-dialog-content')))
             error_dialog = driver.find_element_by_class_name('ui-dialog-content').text
             if error_dialog.find('密码') != -1:
+                print(error_dialog)
                 print('Password error. You are fucked')
+                notify('用户名密码错误')
                 sys.exit()
             if error_dialog.find('验证码') != -1:
+                print(error_dialog)
                 print('CAPTCHA error. Try again.')
+                fail_time += 1
+                sleep(fail_time ** 2)
                 continue
         except TimeoutException:
             try:
                 driver.find_element_by_id('globleBody')
             except NoSuchElementException:
+                fail_time += 1
+                sleep(fail_time ** 2)
                 continue
             print('Seems good.')
         
@@ -72,6 +88,8 @@ def login():
             WEE_SID = driver.get_cookie('WEE_SID')
             return {'JSESSIONID': JSESSIONID['value'], 'WEE_SID': WEE_SID['value']}
         else:
+            fail_time += 1
+            sleep(fail_time ** 2)
             continue
 
 if __name__ == '__main__':
